@@ -1,0 +1,6 @@
+coverage_service: coveralls
+xcodeproj: Sprinter.xcodeproj
+scheme: "Sprinter (Mac)"
+source_directory: Sources/*
+ignore:
+  - Tests/*
