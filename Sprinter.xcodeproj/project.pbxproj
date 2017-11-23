@@ -13,6 +13,8 @@
 		01285E1B1FC3979300698DDC /* Sprinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01285E1A1FC3979300698DDC /* Sprinter.swift */; };
 		012C59311FC5DF26003A7CB2 /* Sprinter.h in Headers */ = {isa = PBXBuildFile; fileRef = 01285E031FC3977900698DDC /* Sprinter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		012C59321FC5DF2F003A7CB2 /* Sprinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01285E1A1FC3979300698DDC /* Sprinter.swift */; };
+		013A91C01FC77A740043C543 /* Sprinter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01285E001FC3977900698DDC /* Sprinter.framework */; };
+		013A91C61FC77B330043C543 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91B61FC77A4B0043C543 /* PerformanceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -22,6 +24,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 01285DFF1FC3977900698DDC;
 			remoteInfo = Sprinter;
+		};
+		013A91C11FC77A740043C543 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 01285DF71FC3977900698DDC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01285DFF1FC3977900698DDC;
+			remoteInfo = "Sprinter (Mac)";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -34,6 +43,8 @@
 		01285E101FC3977900698DDC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		01285E1A1FC3979300698DDC /* Sprinter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sprinter.swift; sourceTree = "<group>"; };
 		012C59291FC5DF13003A7CB2 /* Sprinter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Sprinter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		013A91B61FC77A4B0043C543 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
+		013A91BB1FC77A730043C543 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +70,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		013A91B81FC77A730043C543 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				013A91C01FC77A740043C543 /* Sprinter.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -77,6 +96,7 @@
 				01285E001FC3977900698DDC /* Sprinter.framework */,
 				01285E091FC3977900698DDC /* SprinterTests.xctest */,
 				012C59291FC5DF13003A7CB2 /* Sprinter.framework */,
+				013A91BB1FC77A730043C543 /* PerformanceTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				01285E0E1FC3977900698DDC /* SprinterTests.swift */,
+				013A91B61FC77A4B0043C543 /* PerformanceTests.swift */,
 				01285E101FC3977900698DDC /* Info.plist */,
 			);
 			path = Tests;
@@ -176,6 +197,24 @@
 			productReference = 012C59291FC5DF13003A7CB2 /* Sprinter.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		013A91BA1FC77A730043C543 /* PerformanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 013A91C31FC77A740043C543 /* Build configuration list for PBXNativeTarget "PerformanceTests" */;
+			buildPhases = (
+				013A91B71FC77A730043C543 /* Sources */,
+				013A91B81FC77A730043C543 /* Frameworks */,
+				013A91B91FC77A730043C543 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				013A91C21FC77A740043C543 /* PBXTargetDependency */,
+			);
+			name = PerformanceTests;
+			productName = PerformanceTests;
+			productReference = 013A91BB1FC77A730043C543 /* PerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -198,6 +237,10 @@
 					012C59281FC5DF13003A7CB2 = {
 						CreatedOnToolsVersion = 9.1;
 					};
+					013A91BA1FC77A730043C543 = {
+						CreatedOnToolsVersion = 9.1;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 01285DFA1FC3977900698DDC /* Build configuration list for PBXProject "Sprinter" */;
@@ -215,6 +258,7 @@
 				01285DFF1FC3977900698DDC /* Sprinter (Mac) */,
 				012C59281FC5DF13003A7CB2 /* Sprinter (iOS) */,
 				01285E081FC3977900698DDC /* SprinterTests */,
+				013A91BA1FC77A730043C543 /* PerformanceTests */,
 			);
 		};
 /* End PBXProject section */
@@ -235,6 +279,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		012C59271FC5DF13003A7CB2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		013A91B91FC77A730043C543 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -268,6 +319,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		013A91B71FC77A730043C543 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				013A91C61FC77B330043C543 /* PerformanceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -275,6 +334,11 @@
 			isa = PBXTargetDependency;
 			target = 01285DFF1FC3977900698DDC /* Sprinter (Mac) */;
 			targetProxy = 01285E0B1FC3977900698DDC /* PBXContainerItemProxy */;
+		};
+		013A91C21FC77A740043C543 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01285DFF1FC3977900698DDC /* Sprinter (Mac) */;
+			targetProxy = 013A91C11FC77A740043C543 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -438,9 +502,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 8VQKF583ED;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.SprinterTests;
@@ -452,9 +515,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 8VQKF583ED;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.SprinterTests;
@@ -503,6 +565,40 @@
 			};
 			name = Release;
 		};
+		013A91C41FC77A740043C543 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 8VQKF583ED;
+				INFOPLIST_FILE = Tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = com.PerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Debug;
+		};
+		013A91C51FC77A740043C543 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 8VQKF583ED;
+				INFOPLIST_FILE = Tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = com.PerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -538,6 +634,15 @@
 			buildConfigurations = (
 				012C592F1FC5DF13003A7CB2 /* Debug */,
 				012C59301FC5DF13003A7CB2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		013A91C31FC77A740043C543 /* Build configuration list for PBXNativeTarget "PerformanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				013A91C41FC77A740043C543 /* Debug */,
+				013A91C51FC77A740043C543 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
