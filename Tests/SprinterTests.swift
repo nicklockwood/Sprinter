@@ -408,6 +408,13 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(Int32.max), String(format: string, Int32.max))
     }
 
+    func testPrintIntMax() throws {
+        let string = "%i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(Int.max), "9223372036854775807")
+        XCTAssertEqual(try formatString.print(Int.max), String(format: "%zi", Int.max))
+    }
+
     func testPrintZeroAsInt() throws {
         let string = "%i"
         let formatString = try FormatString(string)
@@ -422,11 +429,25 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(5), String(format: string, 5))
     }
 
+    func testPrintDecimalIntMax() throws {
+        let string = "%d"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(Int.max), "9223372036854775807")
+        XCTAssertEqual(try formatString.print(Int.max), String(format: "%zd", Int.max))
+    }
+
     func testPrintUppercaseDecimal() throws {
         let string = "%D"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(5), "5")
         XCTAssertEqual(try formatString.print(5), String(format: string, 5))
+    }
+
+    func testPrintUppercaseDecimalIntMax() throws {
+        let string = "%D"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(Int.max), "9223372036854775807")
+        XCTAssertEqual(try formatString.print(Int.max), String(format: "%zD", Int.max))
     }
 
     func testPrintUnsignedInt() throws {
@@ -436,11 +457,25 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(UInt(5)), String(format: string, 5))
     }
 
+    func testPrintUnsignedIntMax() throws {
+        let string = "%u"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(UInt.max), "18446744073709551615")
+        XCTAssertEqual(try formatString.print(UInt.max), String(format: "%tu", UInt.max))
+    }
+
     func testPrintUppercaseUnsignedInt() throws {
         let string = "%U"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(UInt(5)), "5")
         XCTAssertEqual(try formatString.print(UInt(5)), String(format: string, 5))
+    }
+
+    func testPrintUppercaseUnsignedIntMax() throws {
+        let string = "%U"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(UInt.max), "18446744073709551615")
+        XCTAssertEqual(try formatString.print(UInt.max), String(format: "%tU", UInt.max))
     }
 
     func testPrintHex() throws {
@@ -450,11 +485,25 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(0x123ABC), String(format: string, 0x123ABC))
     }
 
+    func testPrintHexIntMax() throws {
+        let string = "%x"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(Int.max), "7fffffffffffffff")
+        XCTAssertEqual(try formatString.print(Int.max), String(format: "%tx", Int.max))
+    }
+
     func testPrintUppercaseHex() throws {
         let string = "%X"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(0x123ABC), "123ABC")
         XCTAssertEqual(try formatString.print(0x123ABC), String(format: string, 0x123ABC))
+    }
+
+    func testPrintUppercaseHexIntMax() throws {
+        let string = "%X"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(Int.max), "7FFFFFFFFFFFFFFF")
+        XCTAssertEqual(try formatString.print(Int.max), String(format: "%tX", Int.max))
     }
 
     func testPrintOctal() throws {
@@ -464,11 +513,25 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(0o123456), String(format: string, 0o123456))
     }
 
+    func testPrintOctalIntMax() throws {
+        let string = "%o"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(Int.max), "777777777777777777777")
+        XCTAssertEqual(try formatString.print(Int.max), String(format: "%to", Int.max))
+    }
+
     func testPrintUppercaseOctal() throws {
         let string = "%O"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(0o123456), "123456")
         XCTAssertEqual(try formatString.print(0o123456), String(format: string, 0o123456))
+    }
+
+    func testPrintUppercaseOctalIntMax() throws {
+        let string = "%O"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(Int.max), "777777777777777777777")
+        XCTAssertEqual(try formatString.print(Int.max), String(format: "%tO", Int.max))
     }
 
     func testPrintFloat() throws {
@@ -692,17 +755,17 @@ class SprinterTests: XCTestCase {
     }
 
     func testParameterizedFieldWidth3() throws {
-        let string = "%*2$i"
+        let string = "%*2$x"
         let formatString = try FormatString(string)
-        XCTAssertEqual(try formatString.print(10, 5), "   10")
+        XCTAssertEqual(try formatString.print(10, 5), "    a")
         XCTAssertEqual(try formatString.print(10, 5), String(format: string, 10, 5))
     }
 
     func testParameterizedFieldWidth4() throws {
-        let string = "%1$*2$i"
+        let string = "%1$*2$g"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(10, 5), "   10")
-        XCTAssertEqual(try formatString.print(10, 5), String(format: string, 10, 5))
+        XCTAssertEqual(try formatString.print(10, 5), String(format: string, 10.0, 5))
     }
 
     // MARK: precision
@@ -819,17 +882,38 @@ class SprinterTests: XCTestCase {
     }
 
     func testParameterizedPrecision() throws {
-        let string = "%.*i"
+        let string = "%.*X"
         let formatString = try FormatString(string)
-        XCTAssertEqual(try formatString.print(5, 10), "00010")
+        XCTAssertEqual(try formatString.print(5, 10), "0000A")
         XCTAssertEqual(try formatString.print(5, 10), String(format: string, 5, 10))
     }
 
     func testParameterizedPrecision2() throws {
-        let string = "%.*2$i"
+        let string = "%.*2$g"
         let formatString = try FormatString(string)
-        XCTAssertEqual(try formatString.print(10, 5), "00010")
-        XCTAssertEqual(try formatString.print(10, 5), String(format: string, 10, 5))
+        XCTAssertEqual(try formatString.print(10.123, 3), "10.1")
+        XCTAssertEqual(try formatString.print(10.123, 3), String(format: string, 10.123, 3))
+    }
+
+    func testParameterizedFieldWidthAndPrecision() throws {
+        let string = "%*2$.*3$i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(10, 5, 3), "  010")
+        XCTAssertEqual(try formatString.print(10, 5, 3), String(format: string, 10, 5, 3))
+    }
+
+    func testParameterizedFieldWidthAndPrecision2() throws {
+        let string = "%*2$.*3$x"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(10, 5, 3), "  00a")
+        XCTAssertEqual(try formatString.print(10, 5, 3), String(format: string, 10, 5, 3))
+    }
+
+    func testParameterizedFieldWidthAndPrecision3() throws {
+        let string = "%*2$.*3$g"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(10, 5, 3), "   10")
+        XCTAssertEqual(try formatString.print(10, 5, 3), String(format: string, 10.0, 5, 3))
     }
 
     // MARK: flags
@@ -844,6 +928,18 @@ class SprinterTests: XCTestCase {
         let string = "%'f"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(5000.123), "5,000.123000")
+    }
+
+    func testParameterizedFieldWidthWithGrouping() throws {
+        let string = "%'*2$.3g"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(1000, 6), " 1,000")
+    }
+
+    func testParameterizedPrecisionWithGrouping() throws {
+        let string = "%'6.*2$g"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(1000, 3), " 1,000")
     }
 
     func testPrintVariablePrecisionFloatWithGrouping() throws {
@@ -866,6 +962,12 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(5), String(format: string, 5))
     }
 
+    func testPrintIntWithLeadingPlusAndGrouping() throws {
+        let string = "%'+i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(5000), "+5,000")
+    }
+
     func testPrintNegativeIntWithLeadingPlus() throws {
         let string = "%+i"
         let formatString = try FormatString(string)
@@ -878,6 +980,12 @@ class SprinterTests: XCTestCase {
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(5), " 5")
         XCTAssertEqual(try formatString.print(5), String(format: string, 5))
+    }
+
+    func testPrintIntWithLeadingSpaceAndGrouping() throws {
+        let string = "%' i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(5000), " 5,000")
     }
 
     func testPrintIntWithLeadingSpaceAndPlus() throws {
@@ -950,13 +1058,43 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(5), String(format: string, 5))
     }
 
-    func testPrintLeftIntWithZeroPaddingAndGrouping() throws {
+    func testPrintLeftAlignedIntWithZeroPaddingAndGrouping() throws {
+        let string = "%'-06i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(5000), "5,000 ")
+    }
+
+    func testPrintIntWithZeroPaddingAndGrouping() throws {
         let string = "%0'5i"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(5000), "5,000")
     }
 
-    func testPrintLeftIntWithZeroPaddingAndTrailingRadix() throws {
+    func testPrintFloatWithZeroPaddingAndGrouping() throws {
+        let string = "%'015f"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(1000), "0001,000.000000")
+    }
+
+    func testPrintVAriablePrecisionFloatWithZeroPaddingAndGrouping() throws {
+        let string = "%'0g"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(1000), "1,000")
+    }
+
+    func testParameterizedFieldWidthWithZeroPaddingAndGrouping() throws {
+        let string = "%0'*2$.3g"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(1000, 6), "01,000")
+    }
+
+    func testParameterizedPrecisionWithZeroPaddingAndGrouping() throws {
+        let string = "%0'6.*2$g"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(1000, 3), "01,000")
+    }
+
+    func testPrintFloatWithZeroPaddingAndTrailingRadix() throws {
         let string = "%0#5.f"
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(5), "0005.")
@@ -964,10 +1102,16 @@ class SprinterTests: XCTestCase {
     }
 
     func testPrintAltVariablePrecisionFloatWithZeroPadding() throws {
-        let string = "%#0.4g"
+        let string = "%#06.4g"
         let formatString = try FormatString(string)
-        XCTAssertEqual(try formatString.print(5.23), "5.230")
+        XCTAssertEqual(try formatString.print(5.23), "05.230")
         XCTAssertEqual(try formatString.print(5.23), String(format: string, 5.23))
+    }
+
+    func testPrintAltVariablePrecisionFloatWithZeroPaddingAndGrouping() throws {
+        let string = "%'#011g"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(5000.23), "0005,000.23")
     }
 
     // MARK: print function arguments

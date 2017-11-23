@@ -67,8 +67,8 @@ public struct FormatString {
 
         var description: String {
             switch self {
-            case let .parameter(index):
-                return "*\(index)$"
+            case .parameter:
+                return "*"
             case let .constant(width):
                 return "\(width)"
             }
@@ -265,8 +265,30 @@ public struct FormatString {
             format += flags.map { "\($0.rawValue)" }.joined()
             fieldWidth.map { format += "\($0)" }
             precision.map { format += ".\($0)" }
-            modifier.map { format += $0.rawValue }
-            format += "\(specifier.rawValue)"
+            if let modifier = modifier {
+                format += "\(modifier.rawValue)\(specifier.rawValue)"
+            } else {
+                switch specifier {
+                case .int, .decimal:
+                    format += "zd"
+                case .uppercaseDecimal:
+                    format += "zD"
+                case .unsigned:
+                    format += "tu"
+                case .uppercaseUnsigned:
+                    format += "tU"
+                case .hex:
+                    format += "tx"
+                case .uppercaseHex:
+                    format += "tX"
+                case .octal:
+                    format += "to"
+                case .uppercaseOctal:
+                    format += "tO"
+                default:
+                    format += "\(specifier.rawValue)"
+                }
+            }
             return format
         }
 
@@ -297,21 +319,28 @@ public struct FormatString {
             } else {
                 precision = nil
             }
-            let leftJustified = flags.contains(.leftJustified)
-            let zeroPadded = !leftJustified && flags.contains(.leadingZeros)
             let formatter: NumberFormatter
             switch specifier {
             case .decimal, .uppercaseDecimal, .int, .unsigned, .uppercaseUnsigned:
+                if !flags.contains(.groupThousands) {
+                    return nil // Prefer `String(format:)` for performance
+                }
                 formatter = NumberFormatter()
                 formatter.allowsFloats = false
                 formatter.minimumIntegerDigits = precision ?? 1
             case .float, .uppercaseFloat:
+                if !flags.contains(.groupThousands) {
+                    return nil // Prefer `String(format:)` for performance
+                }
                 formatter = NumberFormatter()
                 formatter.minimumIntegerDigits = 1
-                formatter.minimumFractionDigits = zeroPadded ? 0 : precision ?? 6
+                formatter.minimumFractionDigits = precision ?? 6
                 formatter.maximumFractionDigits = precision ?? 6
                 formatter.alwaysShowsDecimalSeparator = flags.contains(.alternativeForm)
             case .variablePrecisionFloat, .uppercasevariablePrecisionFloat:
+                if !flags.contains(.groupThousands) {
+                    return nil // Prefer `String(format:)` for performance
+                }
                 formatter = NumberFormatter()
                 formatter.minimumIntegerDigits = 1
                 formatter.minimumFractionDigits = 0
@@ -323,25 +352,22 @@ public struct FormatString {
             case .octal, .uppercaseOctal,
                  .hex, .uppercaseHex,
                  .exponential, .uppercaseExponential,
-                 .hexFloat, .uppercaseHexFloat:
-                return nil // Not handled by NumberFormatter
-            case .char, .string,
+                 .hexFloat, .uppercaseHexFloat,
+                 .char, .string,
                  .wideChar, .wideString,
                  .pointer, .bytesWritten,
                  .percentChar, .object:
-                return nil // Not a number
+                return nil // Not handled by NumberFormatter
             }
             formatter.locale = locale
             let infinity = String(format: "%\(specifier.rawValue)", locale: locale, Double.infinity)
             formatter.positiveInfinitySymbol = infinity
             formatter.negativeInfinitySymbol = "-\(infinity)"
             formatter.formatWidth = fieldWidth ?? 0
-            if flags.contains(.groupThousands) {
-                formatter.numberStyle = .decimal
-            }
-            if leftJustified {
+            formatter.numberStyle = .decimal
+            if flags.contains(.leftJustified) {
                 formatter.paddingPosition = .afterSuffix
-            } else if zeroPadded {
+            } else if flags.contains(.leadingZeros) {
                 formatter.paddingCharacter = formatter.zeroSymbol ?? "0"
             }
             if flags.contains(.alwaysShowSign) {
@@ -366,7 +392,13 @@ public struct FormatString {
                  .octal, .uppercaseOctal,
                  .hex, .uppercaseHex,
                  .unsigned, .uppercaseUnsigned:
-                return String(format: formatString, locale: locale, Int(truncating: value as! NSNumber))
+                let value = Int(truncating: value as! NSNumber)
+                if let fieldWidth = fieldWidth, let precision = precision {
+                    return String(format: formatString, locale: locale, fieldWidth, precision, value)
+                } else if let width = fieldWidth ?? precision {
+                    return String(format: formatString, locale: locale, width, value)
+                }
+                return String(format: formatString, locale: locale, value)
             case .float, .uppercaseFloat,
                  .variablePrecisionFloat, .uppercasevariablePrecisionFloat,
                  .exponential, .uppercaseExponential,
@@ -376,6 +408,11 @@ public struct FormatString {
                     return "\(value)" // TODO: respect formatting options
                 }
                 #endif
+                if let fieldWidth = fieldWidth, let precision = precision {
+                    return String(format: formatString, locale: locale, fieldWidth, precision, value as! Double)
+                } else if let width = fieldWidth ?? precision {
+                    return String(format: formatString, locale: locale, width, value as! Double)
+                }
                 return String(format: formatString, locale: locale, value as! Double)
             case .pointer:
                 return String(format: formatString, locale: locale, (value as AnyObject).hash)
