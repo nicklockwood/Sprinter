@@ -58,10 +58,15 @@ public struct FormatString {
         case parameter(UInt)
         case constant(UInt)
 
+        var index: UInt? {
+            switch self {
+            case let .parameter(index): return index
+            case .constant: return nil
+            }
+        }
+
         var description: String {
             switch self {
-            case .parameter(0):
-                return "*"
             case let .parameter(index):
                 return "*\(index)$"
             case let .constant(width):
@@ -69,7 +74,7 @@ public struct FormatString {
             }
         }
 
-        fileprivate init?(_ input: inout String.UnicodeScalarView.SubSequence) throws {
+        fileprivate init?(_ input: inout String.UnicodeScalarView.SubSequence, _ index: inout UInt) throws {
             if input.readCharacter("*") {
                 if let index = try input.readPositiveInt() {
                     guard input.readCharacter("$") else {
@@ -81,7 +86,8 @@ public struct FormatString {
                     self = .parameter(index)
                     return
                 }
-                self = .parameter(0)
+                self = .parameter(index)
+                index += 1
                 return
             }
             if let index = try input.readUInt() {
@@ -172,75 +178,6 @@ public struct FormatString {
             input.removeFirst()
             self = specifier
         }
-
-        func swiftType(for modifier: LengthModifier?) throws -> Any.Type? {
-            switch self {
-            case .decimal, .uppercaseDecimal, .int, .octal, .uppercaseOctal, .hex, .uppercaseHex:
-                guard let modifier = modifier else { return Int.self } // spec says Int32
-                switch modifier {
-                case .char: return CChar.self
-                case .short: return CShort.self
-                case .long: return CLong.self
-                case .longLong, .quadword: return CLongLong.self
-                case .intmax: return intmax_t.self
-                case .size: return size_t.self
-                case .ptrdiff: return ptrdiff_t.self
-                case .longDouble: throw Error.modifierMismatch(modifier.rawValue, Character(rawValue))
-                }
-            case .unsigned, .uppercaseUnsigned:
-                guard let modifier = modifier else { return UInt.self } // spec says UInt32
-                switch modifier {
-                case .char: return CUnsignedChar.self
-                case .short: return CUnsignedShort.self
-                case .long: return CUnsignedLong.self
-                case .longLong, .quadword: return CUnsignedLongLong.self
-                case .intmax: return uintmax_t.self
-                case .size: return UInt.self
-                case .ptrdiff: return UInt.self
-                case .longDouble: throw Error.modifierMismatch(modifier.rawValue, Character(rawValue))
-                }
-            case .float, .uppercaseFloat, .variablePrecisionFloat, .uppercasevariablePrecisionFloat,
-                 .exponential, .uppercaseExponential, .hexFloat, .uppercaseHexFloat:
-                guard let modifier = modifier else { return Double.self }
-                switch modifier {
-                case .longDouble:
-                    #if os(macOS)
-                        return Float80.self
-                    #else
-                        return Double.self
-                    #endif
-                default: throw Error.modifierMismatch(modifier.rawValue, Character(rawValue))
-                }
-            case .char:
-                guard let modifier = modifier else { return Character.self } // spec says CChar
-                switch modifier {
-                case .long: return Character.self // IEEE says wint_t, Apple says unichar
-                default: throw Error.modifierMismatch(modifier.rawValue, Character(rawValue))
-                }
-            case .wideChar:
-                if let modifier = modifier { throw Error.modifierMismatch(modifier.rawValue, Character(rawValue)) }
-                return Character.self  // IEEE says wint_t, Apple says unichar
-            case .string:
-                guard let modifier = modifier else { return String.self } // spec says UnsafePointer<CChar>
-                switch modifier {
-                case .long: return String.self // IEEE says wchar_t*, Apple says Unichar*
-                default: throw Error.modifierMismatch(modifier.rawValue, Character(rawValue))
-                }
-            case .wideString:
-                if let modifier = modifier { throw Error.modifierMismatch(modifier.rawValue, Character(rawValue)) }
-                return String.self // IEEE says wchar_t*, Apple says Unichar*
-            case .pointer:
-                if let modifier = modifier { throw Error.modifierMismatch(modifier.rawValue, Character(rawValue)) }
-                return AnyObject.self
-            case .bytesWritten:
-                throw Error.unsupportedSpecifier(Character(rawValue))
-            case .percentChar:
-                return nil
-            case .object:
-                if let modifier = modifier { throw Error.modifierMismatch(modifier.rawValue, Character(rawValue)) }
-                return Any.self
-            }
-        }
     }
 
     struct Placeholder {
@@ -254,6 +191,75 @@ public struct FormatString {
         private var formatter: NumberFormatter?
         private var formatString = ""
 
+        func getSwiftType() throws -> Any.Type? {
+            switch specifier {
+            case .decimal, .uppercaseDecimal, .int, .octal, .uppercaseOctal, .hex, .uppercaseHex:
+                guard let modifier = modifier else { return Int.self } // spec says Int32
+                switch modifier {
+                case .char: return CChar.self
+                case .short: return CShort.self
+                case .long: return CLong.self
+                case .longLong, .quadword: return CLongLong.self
+                case .intmax: return intmax_t.self
+                case .size: return size_t.self
+                case .ptrdiff: return ptrdiff_t.self
+                case .longDouble: throw Error.modifierMismatch(modifier.rawValue, Character(specifier.rawValue))
+                }
+            case .unsigned, .uppercaseUnsigned:
+                guard let modifier = modifier else { return UInt.self } // spec says UInt32
+                switch modifier {
+                case .char: return CUnsignedChar.self
+                case .short: return CUnsignedShort.self
+                case .long: return CUnsignedLong.self
+                case .longLong, .quadword: return CUnsignedLongLong.self
+                case .intmax: return uintmax_t.self
+                case .size: return UInt.self
+                case .ptrdiff: return UInt.self
+                case .longDouble: throw Error.modifierMismatch(modifier.rawValue, Character(specifier.rawValue))
+                }
+            case .float, .uppercaseFloat, .variablePrecisionFloat, .uppercasevariablePrecisionFloat,
+                 .exponential, .uppercaseExponential, .hexFloat, .uppercaseHexFloat:
+                guard let modifier = modifier else { return Double.self }
+                switch modifier {
+                case .longDouble:
+                    #if os(macOS)
+                        return Float80.self
+                    #else
+                        return Double.self
+                    #endif
+                default: throw Error.modifierMismatch(modifier.rawValue, Character(specifier.rawValue))
+                }
+            case .char:
+                guard let modifier = modifier else { return Character.self } // spec says CChar
+                switch modifier {
+                case .long: return Character.self // IEEE says wint_t, Apple says unichar
+                default: throw Error.modifierMismatch(modifier.rawValue, Character(specifier.rawValue))
+                }
+            case .wideChar:
+                try modifier.map { throw Error.modifierMismatch($0.rawValue, Character(specifier.rawValue)) }
+                return Character.self  // IEEE says wint_t, Apple says unichar
+            case .string:
+                guard let modifier = modifier else { return String.self } // spec says UnsafePointer<CChar>
+                switch modifier {
+                case .long: return String.self // IEEE says wchar_t*, Apple says Unichar*
+                default: throw Error.modifierMismatch(modifier.rawValue, Character(specifier.rawValue))
+                }
+            case .wideString:
+                try modifier.map { throw Error.modifierMismatch($0.rawValue, Character(specifier.rawValue)) }
+                return String.self // IEEE says wchar_t*, Apple says Unichar*
+            case .pointer:
+                try modifier.map { throw Error.modifierMismatch($0.rawValue, Character(specifier.rawValue)) }
+                return AnyObject.self
+            case .bytesWritten:
+                throw Error.unsupportedSpecifier(Character(specifier.rawValue))
+            case .percentChar:
+                return nil
+            case .object:
+                try modifier.map { throw Error.modifierMismatch($0.rawValue, Character(specifier.rawValue)) }
+                return Any.self
+            }
+        }
+
         func buildFormatString() -> String {
             var format = "%"
             format += flags.map { "\($0.rawValue)" }.joined()
@@ -264,18 +270,32 @@ public struct FormatString {
             return format
         }
 
-        func buildFormatter(locale: Locale?) -> NumberFormatter? {
-            let fieldWidth: Int? = self.fieldWidth.flatMap {
-                guard case let .constant(value) = $0 else {
-                    return nil // TODO: support parameterized field width
+        func buildFormatter(fieldWidth w: Int?, precision p: Int?, locale: Locale?) -> NumberFormatter? {
+            let fieldWidth: Int?
+            if let width = self.fieldWidth {
+                switch width {
+                case .parameter where w == nil:
+                    return nil // Can't build formatter
+                case .parameter:
+                    fieldWidth = w
+                case let .constant(value):
+                    fieldWidth = Int(value)
                 }
-                return Int(value)
+            } else {
+                fieldWidth = nil
             }
-            let precision: Int? = self.precision.flatMap {
-                guard case let .constant(value) = $0 else {
-                    return nil // TODO: support parameterized precision
+            let precision: Int?
+            if let width = self.precision {
+                switch width {
+                case .parameter where p == nil:
+                    return nil // Can't build formatter
+                case .parameter:
+                    precision = p
+                case let .constant(value):
+                    precision = Int(value)
                 }
-                return Int(value)
+            } else {
+                precision = nil
             }
             let leftJustified = flags.contains(.leftJustified)
             let zeroPadded = !leftJustified && flags.contains(.leadingZeros)
@@ -332,8 +352,12 @@ public struct FormatString {
             return formatter
         }
 
-        func print(_ value: Any, locale: Locale?) -> String {
-            if let formatter = formatter, let number = value as? NSNumber {
+        func print(_ value: Any, _ fieldWidth: Int?, _ precision: Int?, locale: Locale?) -> String {
+            if let formatter = formatter ?? buildFormatter(
+                fieldWidth: fieldWidth,
+                precision: precision,
+                locale: locale
+            ), let number = value as? NSNumber {
                 // Seems like this can never be nil, but better to be safe
                 return formatter.string(from: number) ?? ""
             }
@@ -363,27 +387,34 @@ public struct FormatString {
             }
         }
 
-        fileprivate init?(_ input: inout String.UnicodeScalarView.SubSequence, locale: Locale?) throws {
+        fileprivate init?(
+            _ input: inout String.UnicodeScalarView.SubSequence,
+            _ index: inout UInt,
+            locale: Locale?
+        ) throws {
             guard input.readCharacter("%") else { return nil }
             guard let first = input.first else {
                 throw Error.unexpectedEndOfString
             }
-            // index, flag or field width
+            // index, flag, field width, precision
             if let int = try input.readPositiveInt() {
                 if input.readCharacter("$") {
-                    index = int
+                    self.index = int
                     flags = try input.readFlags()
-                    fieldWidth = try FieldWidth(&input)
+                    fieldWidth = try FieldWidth(&input, &index)
                 } else {
                     fieldWidth = .constant(int)
                 }
             } else {
                 flags = try input.readFlags()
-                fieldWidth = try FieldWidth(&input)
+                fieldWidth = try FieldWidth(&input, &index)
             }
-            // precision
             if input.readCharacter(".") {
-                precision = try FieldWidth(&input) ?? .constant(0)
+                precision = try FieldWidth(&input, &index) ?? .constant(0)
+            }
+            if self.index == 0, first != "%" {
+                self.index = index
+                index += 1
             }
             // modifier modifier
             modifier = LengthModifier(&input)
@@ -393,7 +424,7 @@ public struct FormatString {
                 throw Error.modifierMismatch("\(first)", "%")
             }
             // set up formatter
-            formatter = buildFormatter(locale: locale)
+            formatter = buildFormatter(fieldWidth: nil, precision: nil, locale: locale)
             if formatter == nil {
                 formatString = buildFormatString()
             }
@@ -411,7 +442,6 @@ public struct FormatString {
         case duplicateFlag(Character)
         case unsupportedFlag(Character)
         case unsupportedSpecifier(Character)
-        case unsupportedFeature(String)
         case modifierMismatch(String, Character)
         case typeMismatch(Int, Any.Type, Any.Type)
         case argumentMismatch(Int, Any.Type, Any.Type)
@@ -429,8 +459,6 @@ public struct FormatString {
                 return "Formatting flag '\(char)' is not currently supported"
             case let .unsupportedSpecifier(char):
                 return "The format specifier '\(char)' is not currently supported"
-            case let .unsupportedFeature(feature):
-                return "The \(feature) feature is not currently supported"
             case let .modifierMismatch(modifier, specifier):
                 return "Length modifier '\(modifier)' cannot be used with format specifier '\(specifier)'"
             case let .typeMismatch(index, type1, type2):
@@ -455,8 +483,6 @@ public struct FormatString {
                  let (.unsupportedFlag(lhs), .unsupportedFlag(rhs)),
                  let (.unsupportedSpecifier(lhs), .unsupportedSpecifier(rhs)):
                 return lhs == rhs
-            case let (.unsupportedFeature(lhs), .unsupportedFeature(rhs)):
-                return lhs == rhs
             case let (.modifierMismatch(lmodifier, lspecifier), .modifierMismatch(rmodifier, rspecifier)):
                 return lmodifier == rmodifier && lspecifier == rspecifier
             case let (.typeMismatch(lindex, ltype1, ltype2), .typeMismatch(rindex, rtype1, rtype2)),
@@ -469,7 +495,6 @@ public struct FormatString {
                  (.duplicateFlag, _),
                  (.unsupportedFlag, _),
                  (.unsupportedSpecifier, _),
-                 (.unsupportedFeature, _),
                  (.modifierMismatch, _),
                  (.typeMismatch, _),
                  (.argumentMismatch, _),
@@ -503,36 +528,22 @@ public struct FormatString {
         var typesByIndex = [UInt: Any.Type]()
         var index: UInt = 1
         while !characters.isEmpty {
-            if let placeholder = try Placeholder(&characters, locale: locale) {
+            if let placeholder = try Placeholder(&characters, &index, locale: locale) {
                 tokens.append(.placeholder(placeholder))
-                guard let type = try placeholder.specifier.swiftType(for: placeholder.modifier) else {
+                guard let type = try placeholder.getSwiftType() else {
                     continue
                 }
-                var typeIndex = placeholder.index
-                if typeIndex == 0 {
-                    typeIndex = index
-                    index += 1
+                if let fieldWidthIndex = placeholder.fieldWidth?.index {
+                    typesByIndex[fieldWidthIndex] = Int.self
                 }
+                if let precisionIndex = placeholder.precision?.index {
+                    typesByIndex[precisionIndex] = Int.self
+                }
+                let typeIndex = placeholder.index
                 if let oldType = typesByIndex[typeIndex], oldType != type {
                     throw Error.typeMismatch(Int(typeIndex), oldType, type)
                 }
                 typesByIndex[typeIndex] = type
-                if let fieldWidth = placeholder.fieldWidth, case var .parameter(fieldWidthIndex) = fieldWidth {
-                    if fieldWidthIndex == 0 {
-                        fieldWidthIndex = index
-                        index += 1
-                    }
-                    typesByIndex[fieldWidthIndex] = UInt.self
-                    throw Error.unsupportedFeature("parameterized field width")
-                }
-                if let precision = placeholder.precision, case var .parameter(precisionIndex) = precision {
-                    if precisionIndex == 0 {
-                        precisionIndex = index
-                        index += 1
-                    }
-                    typesByIndex[precisionIndex] = UInt.self
-                    throw Error.unsupportedFeature("parameterized precision")
-                }
             }
             var string = ""
             while let first = characters.first {
@@ -558,9 +569,8 @@ public struct FormatString {
         }
     }
 
-    // Print the formatted string with the specified arguments
+    /// Print the formatted string with the specified arguments
     public func print(arguments: [Any]) throws -> String {
-        var index = 0
         return try tokens.map { token -> String in
             switch token {
             case let .string(string):
@@ -569,22 +579,14 @@ public struct FormatString {
                 if placeholder.specifier == .percentChar {
                     return "%"
                 }
-                let argumentIndex: Int
-                if placeholder.index == 0 {
-                    argumentIndex = index
-                    index += 1
-                } else {
-                    argumentIndex = Int(placeholder.index) - 1
-                }
-                if argumentIndex >= arguments.count {
-                    throw Error.missingArgument(argumentIndex + 1)
-                }
-                let argument = arguments[argumentIndex]
-                let expectedType = types[argumentIndex]
-                guard let value = cast(argument, as: expectedType) else {
-                    throw Error.argumentMismatch(argumentIndex + 1, Swift.type(of: argument), expectedType)
-                }
-                return placeholder.print(value, locale: locale)
+                let value = try argument(at: placeholder.index, in: arguments)
+                let fieldWidth = try placeholder.fieldWidth?.index.map {
+                    try argument(at: $0, in: arguments)
+                } as? Int
+                let precision = try placeholder.precision?.index.map {
+                    try argument(at: $0, in: arguments)
+                } as? Int
+                return placeholder.print(value, fieldWidth, precision, locale: locale)
             }
         }.joined()
     }
@@ -597,53 +599,68 @@ public struct FormatString {
         }
         return try print(arguments: arguments)
     }
-}
 
-private func cast(_ value: Any, as type: Any.Type) -> Any? {
-    if type == Swift.type(of: value) {
+    // MARK: private
+
+    private func argument(at index: UInt, in arguments: [Any]) throws -> Any {
+        let zeroBasedIndex = Int(index) - 1
+        if index > arguments.count {
+            throw Error.missingArgument(Int(index))
+        }
+        let argument = arguments[zeroBasedIndex]
+        let expectedType = types[zeroBasedIndex]
+        guard let value = cast(argument, as: expectedType) else {
+            throw Error.argumentMismatch(Int(index), Swift.type(of: argument), expectedType)
+        }
         return value
     }
-    switch (type, value) {
-    // Integer promotion
-    case (is Int.Type, let value as Int32):
-        return Int(value)
-    case (is Int.Type, let value as Int16):
-        return Int(value)
-    case (is Int.Type, let value as UInt16):
-        return Int(value)
-    case (is Int.Type, let value as Int8):
-        return Int(value)
-    case (is Int.Type, let value as UInt8):
-        return Int(value)
-    // Double promotion
-    case (is Double.Type, let value as NSNumber):
-        return Double(truncating: value)
-    // Character promotion
-    case (is Character.Type, let value as String):
-        return value.first
-    case (is Character.Type, let value as Unicode.Scalar):
-        return Character(value)
-    case (is Character.Type, let value as Int):
-        return UnicodeScalar(value).map(Character.init)
-    case (is Character.Type, let value as UInt32):
-        return UnicodeScalar(value).map(Character.init)
-    case (is Character.Type, let value as UInt16):
-        return UnicodeScalar(value).map(Character.init)
-    case (is Character.Type, let value as UInt8):
-        return Character(UnicodeScalar(value))
-    case (is Character.Type, let value as Int8):
-        return Character(UnicodeScalar(UInt8(value)))
-    // String promotion
-    case (is String.Type, let value as NSString):
-        return value as String
-    // Pointer promotion
-    case _ where type == AnyObject.self:
-        return value as AnyObject
-    // Any promotion
-    case _ where type == Any.self:
-        return value
-    default: // Any
-        return nil
+
+    private func cast(_ value: Any, as type: Any.Type) -> Any? {
+        if type == Swift.type(of: value) {
+            return value
+        }
+        switch (type, value) {
+        // Integer promotion
+        case (is Int.Type, let value as Int32):
+            return Int(value)
+        case (is Int.Type, let value as Int16):
+            return Int(value)
+        case (is Int.Type, let value as UInt16):
+            return Int(value)
+        case (is Int.Type, let value as Int8):
+            return Int(value)
+        case (is Int.Type, let value as UInt8):
+            return Int(value)
+        // Double promotion
+        case (is Double.Type, let value as NSNumber):
+            return Double(truncating: value)
+        // Character promotion
+        case (is Character.Type, let value as String):
+            return value.first
+        case (is Character.Type, let value as Unicode.Scalar):
+            return Character(value)
+        case (is Character.Type, let value as Int):
+            return UnicodeScalar(value).map(Character.init)
+        case (is Character.Type, let value as UInt32):
+            return UnicodeScalar(value).map(Character.init)
+        case (is Character.Type, let value as UInt16):
+            return UnicodeScalar(value).map(Character.init)
+        case (is Character.Type, let value as UInt8):
+            return Character(UnicodeScalar(value))
+        case (is Character.Type, let value as Int8):
+            return Character(UnicodeScalar(UInt8(value)))
+        // String promotion
+        case (is String.Type, let value as NSString):
+            return value as String
+        // Pointer promotion
+        case _ where type == AnyObject.self:
+            return value as AnyObject
+        // Any promotion
+        case _ where type == Any.self:
+            return value
+        default: // Any
+            return nil
+        }
     }
 }
 

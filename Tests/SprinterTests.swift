@@ -154,20 +154,6 @@ class SprinterTests: XCTestCase {
         }
     }
 
-    func testUnsupportedFieldWidthFeature() {
-        XCTAssertThrowsError(try FormatString("%*x"))
-        XCTAssertThrowsError(try FormatString("%*1$x")) { error in
-            XCTAssertEqual(error as? FormatString.Error, .unsupportedFeature("parameterized field width"))
-        }
-    }
-
-    func testUnsupportedPrecisionFeature() {
-        XCTAssertThrowsError(try FormatString("%.*i"))
-        XCTAssertThrowsError(try FormatString("%.*3$i")) { error in
-            XCTAssertEqual(error as? FormatString.Error, .unsupportedFeature("parameterized precision"))
-        }
-    }
-
     // MARK: Error printing and comparisons
 
     func testErrorDescriptions() {
@@ -176,7 +162,6 @@ class SprinterTests: XCTestCase {
         XCTAssert("\(FormatString.Error.duplicateFlag("a"))".contains("'a'"))
         XCTAssert("\(FormatString.Error.unsupportedFlag("a"))".contains("'a'"))
         XCTAssert("\(FormatString.Error.unsupportedSpecifier("a"))".contains("'a'"))
-        XCTAssert("\(FormatString.Error.unsupportedFeature("foo"))".contains("foo"))
         XCTAssert("\(FormatString.Error.modifierMismatch("a", "a"))".contains("'a'"))
         XCTAssert("\(FormatString.Error.typeMismatch(1, Any.self, Any.self))".contains("#1"))
         XCTAssert("\(FormatString.Error.argumentMismatch(1, Any.self, Any.self))".contains("#1"))
@@ -189,7 +174,6 @@ class SprinterTests: XCTestCase {
         XCTAssertNotEqual(FormatString.Error.duplicateFlag("a"), .unexpectedEndOfString)
         XCTAssertNotEqual(FormatString.Error.unsupportedFlag("a"), .unexpectedEndOfString)
         XCTAssertNotEqual(FormatString.Error.unsupportedSpecifier("a"), .unexpectedEndOfString)
-        XCTAssertNotEqual(FormatString.Error.unsupportedFeature("foo"), .unexpectedEndOfString)
         XCTAssertNotEqual(FormatString.Error.modifierMismatch("a", "a"), .unexpectedEndOfString)
         XCTAssertNotEqual(FormatString.Error.typeMismatch(1, Any.self, Any.self), .unexpectedEndOfString)
         XCTAssertNotEqual(FormatString.Error.argumentMismatch(1, Any.self, Any.self), .unexpectedEndOfString)
@@ -352,6 +336,12 @@ class SprinterTests: XCTestCase {
         let formatString = try FormatString("%ls")
         XCTAssertEqual(formatString.placeholders.first?.specifier, .string)
         XCTAssertEqual(formatString.types.map { "\($0)" }, ["String"])
+    }
+
+    func testParsePercentPlaceholderFollowedByInteger() throws {
+        let formatString = try FormatString("foo %% bar %i")
+        XCTAssertEqual(formatString.placeholders.map { $0.specifier }, [.percentChar, .int])
+        XCTAssertEqual(formatString.types.map { "\($0)" }, ["Int"])
     }
 
     // MARK: argument indices
@@ -687,6 +677,34 @@ class SprinterTests: XCTestCase {
         XCTAssertEqual(try formatString.print(Double.pi), String(format: string, Double.pi))
     }
 
+    func testParameterizedFieldWidth() throws {
+        let string = "%*i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(5, 10), "   10")
+        XCTAssertEqual(try formatString.print(5, 10), String(format: string, 5, 10))
+    }
+
+    func testParameterizedFieldWidth2() throws {
+        let string = "%2$*i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(5, 10), "   10")
+        XCTAssertEqual(try formatString.print(5, 10), String(format: string, 5, 10))
+    }
+
+    func testParameterizedFieldWidth3() throws {
+        let string = "%*2$i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(10, 5), "   10")
+        XCTAssertEqual(try formatString.print(10, 5), String(format: string, 10, 5))
+    }
+
+    func testParameterizedFieldWidth4() throws {
+        let string = "%1$*2$i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(10, 5), "   10")
+        XCTAssertEqual(try formatString.print(10, 5), String(format: string, 10, 5))
+    }
+
     // MARK: precision
 
     func testPrintIntWithPrecision() throws {
@@ -798,6 +816,20 @@ class SprinterTests: XCTestCase {
         let string = "%Lf" // TODO: support other formatting options
         let formatString = try FormatString(string)
         XCTAssertEqual(try formatString.print(Float80(7.0)), "7.0")
+    }
+
+    func testParameterizedPrecision() throws {
+        let string = "%.*i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(5, 10), "00010")
+        XCTAssertEqual(try formatString.print(5, 10), String(format: string, 5, 10))
+    }
+
+    func testParameterizedPrecision2() throws {
+        let string = "%.*2$i"
+        let formatString = try FormatString(string)
+        XCTAssertEqual(try formatString.print(10, 5), "00010")
+        XCTAssertEqual(try formatString.print(10, 5), String(format: string, 10, 5))
     }
 
     // MARK: flags
