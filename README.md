@@ -111,13 +111,13 @@ let french = try FormatString("I have %i apples", locale: Locale(identifier: "fr
 This will affect how locale-specific formatting and punctuation is displayed, for example:
 
 ```swift
-let english = try FormatString("%'g", locale: Locale(identifier: "en-US")
+let english = try FormatString("%'g", locale: Locale(identifier: "en-US"))
 try print(english.print(1234.56)) // 1,234.56
 
-let french = try FormatString("%'g", locale: Locale(identifier: "fr-FR")
+let french = try FormatString("%'g", locale: Locale(identifier: "fr-FR"))
 try print(french.print(1234.56)) // 1 234,56
 
-let german = try FormatString("%'g", locale: Locale(identifier: "de-DE")
+let german = try FormatString("%'g", locale: Locale(identifier: "de-DE"))
 try print(german.print(1234.56)) // 1.234,56
 ```
 
