@@ -60,9 +60,9 @@ The entire Sprinter API is encapsulated in a single file, and everything public 
 
 To install Sprinter using CocoaPods, add the following to your Podfile:
 
-	pod 'Sprinter', '~> 0.1.0'
+	pod 'Sprinter', '~> 0.2.0'
 
-Sprinter works with Swift 3.2 and 4.x
+Sprinter works with Swift 3.2 and 4.x and supports iOS 9 or macOS 10.0 and above
 
 
 ## Integration
@@ -168,4 +168,4 @@ This function provides:
 * Encapsulated error handling, which will crash in development but fail gracefully in production
 * Thread-safe caching of `FormatString` instances for better performance
 
-This is just an example approach, but it should work for most typical use cases.
+This is just an example approach, but it should work for most use cases.

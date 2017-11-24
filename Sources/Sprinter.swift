@@ -2,7 +2,7 @@
 //  Sprinter.swift
 //  Sprinter
 //
-//  Version 0.1.0
+//  Version 0.2.0
 //
 //  Created by Nick Lockwood on 20/11/2017.
 //  Copyright © 2017 Nick Lockwood. All rights reserved.
